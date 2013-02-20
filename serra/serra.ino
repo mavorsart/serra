@@ -2,7 +2,21 @@
 #include <stdio.h>
 #include <string.h>
 #include <DS1302.h>
-//#include <Ethernet.h>
+#include <SPI.h>
+#include <Ethernet.h>
+
+// *** ETHERNET SHIELD e CONNETTIVITA'
+  EthernetClient client;
+  
+  byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xD3, 0x5C };
+  char serverName[] = "www.serrarduino.altervista.org";
+  String ipLocale="";
+  String postString="password=serrarduino1994&local_ip=";
+  int postLength=0; 
+  
+  EthernetServer server(1994);
+  char c;
+// *** FINE ETHERNET SHIELD
 
 // *** SENSORE TEMPERATURA 
     #define DHTPIN 2     // what pin we're connected to
@@ -51,11 +65,66 @@ void setup() {
   Serial.begin(9600);  
   dht.begin();
   
+  //### tenta l'assegnazione di indirizzo IP
+  if (Ethernet.begin(mac) == 0) {
+    Serial.println("Failed to configure Ethernet using DHCP");}
+    else Serial.println("Indirizzo ottenuto correttamente dal DHCP");
+    
+   //### salvo stringa con ip
+  for (byte thisByte = 0; thisByte < 4; thisByte++) {
+    // print the value of each byte of the IP address:
+    ipLocale+=String(Ethernet.localIP()[thisByte], DEC);
+    ipLocale+="."; 
+  }
+   ipLocale=ipLocale.substring(0, ipLocale.length()-1);
+  //###
+  
+  //### aggiungo local ip a stringa per POST e la misuro
+    postString+=ipLocale;
+    postLength=postString.length();
+  //###
+    delay(1000);
+    //### si connete al server e comunica gli indirizzi
+    
+  if (client.connect(serverName, 80)) {
+    Serial.println("Connected with your SerrArduino Server");
+    
+    // HTTP request for set IP address
+    client.println("POST /ip_getter.php HTTP/1.1");
+    client.println("Host: www.serrarduino.altervista.org");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Content-Length: "+String(postLength,DEC));
+    client.println();
+    client.println(postString);
+    client.println();
+  } 
+  else {
+    // if you didn't get a connection to the server:
+    Serial.println("Connection failed, IP address not sent.");
+  }
+  //###
+  
+  //### inizializzazione come server
+  server.begin();
 }
 
 void loop() {
   
-  //### legge la temnperatura dell'ambiente
+  /*
+  //### stampa la risposta HTTP dell'invio IP
+  
+  if (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+
+  // if the server's disconnected, stop the client:
+  if (!client.connected()) {
+    client.stop();
+  }*/
+  
+  
+  //### legge la temperatura dell'ambiente
   
    h = dht.readHumidity();
    t = dht.readTemperature();
@@ -86,7 +155,7 @@ void loop() {
    //### invia al sito dell'applicazione le variazioni dell'ambiente
        
    //### legge l'ora attuale dal dispositivo RTC e controlla la schedulazione delle irrigazioni
-        time = rtc.time();
+     /*   time = rtc.time();
        if(time==corrente && digitalRead(POMPA)){
          digitalWrite(POMPA,HIGH);
         // corrente=irrigazione[i].spegni;
@@ -94,7 +163,45 @@ void loop() {
        if(time==corrente && !digitalRead(POMPA)){
          digitalWrite(POMPA,LOW);
         // corrente=irrigazione[++i].accendi;
-       }
+       }*/
        
-     
-} 
+    //### controlla se ha ricevuto una richiesta dal client
+  
+  EthernetClient client = server.available();
+  if (client) {
+    // an http request ends with a blank line
+    boolean currentLineIsBlank = true;
+    while (client.connected()) {
+      if (client.available()) {
+        char c = client.read();
+        // if you've gotten to the end of the line (received a newline
+        // character) and the line is blank, the http request has ended,
+        // so you can send a reply
+        if (c == '\n' && currentLineIsBlank) {
+          // send a standard http response header
+          client.println("HTTP/1.1 200 OK");
+          client.println("Content-Type: text/html");
+          client.println();
+
+          // output the page
+            client.println("<h1>Pannello di controllo</h1>");
+            client.println("<p>Questa pagina rappresenta il pannello di controllo della serra.</p>");
+          
+          break;
+        }
+        if (c == '\n') {
+          // you're starting a new line
+          currentLineIsBlank = true;
+        } 
+        else if (c != '\r') {
+          // you've gotten a character on the current line
+          currentLineIsBlank = false;
+        }
+      }
+    }
+    // give the web browser time to receive the data
+    delay(1);
+    // close the connection:
+    client.stop();
+  }
+}

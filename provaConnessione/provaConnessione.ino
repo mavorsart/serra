@@ -19,8 +19,11 @@
 
 // Enter a MAC address for your controller below.
 // Newer Ethernet shields have a MAC address printed on a sticker on the shield
-byte mac[] = {  0x00, 0xAA, 0xBB, 0xCC, 0xDE, 0x02 };
-char serverName[] = "www.bandadipontelambro.it";
+byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xD3, 0x5C };
+char serverName[] = "www.serrarduino.altervista.org";
+String ipLocale="";
+String postString="password=serrarduino1994&local_ip=";
+int postLength=0;
 
 // Initialize the Ethernet client library
 // with the IP address and port of the server 
@@ -36,6 +39,30 @@ void setup() {
     // no point in carrying on, so do nothing forevermore:
     while(true);
   }
+  
+  // print your local IP address:
+  Serial.print("My IP address: ");
+  for (byte thisByte = 0; thisByte < 4; thisByte++) {
+    // print the value of each byte of the IP address:
+    Serial.print(Ethernet.localIP()[thisByte], DEC);
+    Serial.print("."); 
+  }
+  
+  
+  //### salvo stringa con ip
+  for (byte thisByte = 0; thisByte < 4; thisByte++) {
+    // print the value of each byte of the IP address:
+    ipLocale+=String(Ethernet.localIP()[thisByte], DEC);
+    ipLocale+="."; 
+  }
+   ipLocale=ipLocale.substring(0, ipLocale.length()-1);
+  //###
+  
+  //### aggiungo local ip a stringa per POST e la misuro
+    postString+=ipLocale;
+    postLength=postString.length();
+  //###
+  
   // give the Ethernet shield a second to initialize:
   delay(1000);
   Serial.println("connecting...");
@@ -44,8 +71,14 @@ void setup() {
   
   if (client.connect(serverName, 80)) {
     Serial.println("connected");
-    // Make a HTTP request:
-    client.println("GET /search?q=arduino HTTP/1.0");
+    
+    // HTTP request for set IP address
+    client.println("POST /ip_getter.php HTTP/1.1");
+    client.println("Host: www.serrarduino.altervista.org");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Content-Length: "+String(postLength,DEC));
+    client.println();
+    client.println(postString);
     client.println();
   } 
   else {
