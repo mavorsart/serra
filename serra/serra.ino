@@ -9,8 +9,9 @@
   EthernetClient client;
   
   byte mac[] = {  0x90, 0xA2, 0xDA, 0x0D, 0xD3, 0x5C };
-  char serverName[] = "www.serrarduino.altervista.org";
+  IPAddress ip(192,168,1,94);
   String ipLocale="";
+  char serverName[] = "www.serrarduino.altervista.org";
   String postString="password=serrarduino1994&local_ip=";
   int postLength=0; 
   
@@ -66,9 +67,14 @@ void setup() {
   dht.begin();
   
   //### tenta l'assegnazione di indirizzo IP
+  
+ // Ethernet.begin(mac,ip);
+ // Serial.println(ip);
+  
   if (Ethernet.begin(mac) == 0) {
     Serial.println("Failed to configure Ethernet using DHCP");}
     else Serial.println("Indirizzo ottenuto correttamente dal DHCP");
+    
     
    //### salvo stringa con ip
   for (byte thisByte = 0; thisByte < 4; thisByte++) {
@@ -110,10 +116,10 @@ void setup() {
 
 void loop() {
   
-  /*
+  
   //### stampa la risposta HTTP dell'invio IP
   
-  if (client.available()) {
+ /* if (client.available()) {
     char c = client.read();
     Serial.print(c);
   }
@@ -123,11 +129,10 @@ void loop() {
     client.stop();
   }*/
   
-  
   //### legge la temperatura dell'ambiente
   
-   h = dht.readHumidity();
-   t = dht.readTemperature();
+     h = dht.readHumidity();
+     t = dht.readTemperature();
    
    //### valuta come agire per stabilizzare il microclima
            if(h>hMax || t > tAmb){

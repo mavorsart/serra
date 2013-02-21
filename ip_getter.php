@@ -7,7 +7,7 @@
 		//salvo ip nel database
 			include("connessione.php");
 			
-			$sql="INSERT INTO ip_address (ip_date,ip_public,ip_local) VALUES(NOW(),'".$ip_p."','".$ip_l."');";
+			$sql="UPDATE ip_address SET ip_date=NOW(), ip_public='".$ip_p."', ip_local='".$ip_l."';";
 			$ris=mysql_query($sql) or die ("Errore Query");
 
 			mysql_close();

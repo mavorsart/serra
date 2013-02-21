@@ -26,12 +26,12 @@ IPAddress ip(192,168,1, 177);
 // Initialize the Ethernet server library
 // with the IP address and port you want to use 
 // (port 80 is default for HTTP):
-EthernetServer server(1994);
+EthernetServer server(80);
 
 void setup()
 {
   // start the Ethernet connection and the server:
-  Ethernet.begin(mac, ip);
+  Ethernet.begin(mac);
   server.begin();
 }
 
