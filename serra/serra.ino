@@ -4,6 +4,10 @@
 #include <DS1302.h>
 #include <SPI.h>
 #include <Ethernet.h>
+#include <Time.h>
+#include <TimeAlarms.h>
+#include <SD.h>
+
 
 // *** ETHERNET SHIELD e CONNETTIVITA'
   EthernetClient client;
@@ -52,6 +56,10 @@
     Time corrente;
 // *** FINE IRRIGAZIONE
 
+//*** MICRO SD
+  File myFile;
+//*** FINE MICRO SD
+
 #define VENTOLA_1 22 //pin della ventola 1
 #define VENTOLA_2 23 //pin della ventola 2
 //#define OROLOGIO 24 //pin dell'RTC
@@ -68,6 +76,11 @@ float hMin=30;
 void setup() {
   Serial.begin(9600);  
   dht.begin();
+  
+  //### preparazione MICRO SD
+    pinMode(53, OUTPUT);
+   
+   
   
   //### tenta l'assegnazione di indirizzo IP
   
@@ -173,6 +186,8 @@ void loop() {
         // corrente=irrigazione[++i].accendi;
        }*/
        
+     
+       
     //### controlla se ha ricevuto una richiesta dal client
   
   EthernetClient client = server.available();
@@ -215,4 +230,8 @@ void loop() {
     // close the connection:
     client.stop();
   }
+}
+
+void leggiIrrigazioni(){
+  
 }
