@@ -24,6 +24,23 @@
   
   EthernetServer server(1994);
   char c;
+  String headerCli="";
+  String header200="HTTP/1.1 200 OK\nServer: SerrArduino/1.0\nContent-Type: text/html\nContent-Language: it\nConnection: close\n";
+  String error404="HTTP/1.1 404 Not Found\nServer: SerrArduino/1.0\nContent-Type: text/html\nContent-Language: it\nConnection: close\n\n<html><head><title>Arduino Web Server - Error 404</title></head><body><h1>Error 404: Sorry, that page cannot be found!</h1></body>";"
+
+  // For sending HTML to the client
+  #define STRING_BUFFER_SIZE 128
+  char buffer[STRING_BUFFER_SIZE];
+
+  // to store data from HTTP request
+  #define STRING_LOAD_SIZE 128
+  char load[STRING_LOAD_SIZE];
+  
+  // POST and GET variables
+  #define STRING_VARS_SIZE 128
+  char vars[STRING_VARS_SIZE];
+
+
 // *** FINE ETHERNET SHIELD
 
 // *** SENSORE TEMPERATURA 
@@ -118,7 +135,17 @@ void setup() {
     client.println();
     client.println(postString);
     client.println();
-    client.stop();
+    
+    /*
+     //### stampa la risposta HTTP dell'invio IP
+     delay(3000); 
+     while (client.available()) {
+        char c = client.read();
+        Serial.print(c);
+    }
+  */
+  
+    client.stop();   
   } 
   else {
     // if you didn't get a connection to the server:
@@ -133,28 +160,14 @@ void setup() {
 void loop() {
   
   
-  //### stampa la risposta HTTP dell'invio IP
   
- /* if (client.available()) {
-    char c = client.read();
-    Serial.print(c);
-  }
-
-  // if the server's disconnected, stop the client:
-  if (!client.connected()) {
-    client.stop();
-  }*/
+  
   
   //### legge la temperatura dell'ambiente
   
      h = dht.readHumidity();
      t = dht.readTemperature();
-   
-      
-     inviaStato();
      
-     
-     delay(2000);
    //### valuta come agire per stabilizzare il microclima
            if(h>hMax || t > tAmb){
               digitalWrite(VENTOLA_1,HIGH);
@@ -179,7 +192,9 @@ void loop() {
            }
    
    //### invia al sito dell'applicazione le variazioni dell'ambiente
-       
+        // inviaStato();
+         delay(2000);
+         
    //### legge l'ora attuale dal dispositivo RTC e controlla la schedulazione delle irrigazioni
      /*   time = rtc.time();
        if(time==corrente && digitalRead(POMPA)){
@@ -202,19 +217,15 @@ void loop() {
     while (client.connected()) {
       if (client.available()) {
         char c = client.read();
+        headerCli+=String(c);
         // if you've gotten to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
         if (c == '\n' && currentLineIsBlank) {
           // send a standard http response header
-          client.println("HTTP/1.1 200 OK");
-          client.println("Content-Type: text/html");
-          client.println("Content-Language: it");
-          client.println("Server: SerrArduino/1.0");
-          client.println("Connection: close");
-          client.println();
-
+          client.println(header200);
           // output the page
+          
             client.println("<h1>Pannello di controllo</h1>");
             client.println("<p>Ciao, sono Arduino e questa pagina rappresenta il pannello di controllo della tua serra.</p>");
           
