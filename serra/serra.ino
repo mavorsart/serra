@@ -27,7 +27,7 @@
 // *** FINE ETHERNET SHIELD
 
 // *** SENSORE TEMPERATURA 
-    #define DHTPIN 2     // what pin we're connected to
+    #define DHTPIN 30     // what pin we're connected to
     
     #define DHTTYPE DHT22   // DHT 22  (AM2302)
     
@@ -78,9 +78,8 @@ void setup() {
   dht.begin();
   
   //### preparazione MICRO SD
-    pinMode(53, OUTPUT);
-   
-   
+   pinMode(53, OUTPUT);
+   leggiIrrigazioni();
   
   //### tenta l'assegnazione di indirizzo IP
   
@@ -119,6 +118,7 @@ void setup() {
     client.println();
     client.println(postString);
     client.println();
+    client.stop();
   } 
   else {
     // if you didn't get a connection to the server:
@@ -150,6 +150,11 @@ void loop() {
      h = dht.readHumidity();
      t = dht.readTemperature();
    
+      
+     inviaStato();
+     
+     
+     delay(2000);
    //### valuta come agire per stabilizzare il microclima
            if(h>hMax || t > tAmb){
               digitalWrite(VENTOLA_1,HIGH);
@@ -234,4 +239,58 @@ void loop() {
 
 void leggiIrrigazioni(){
   
+}
+
+void comunicaErrore(String errore){
+  String postString="password=serrarduino1994&valore="+errore;
+  postLength=postString.length();
+  
+  if (client.connect(serverName, 80)) {
+    // HTTP request for send error message
+    client.println("POST /error.php HTTP/1.1");
+    client.println("Host: www.serrarduino.altervista.org");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Content-Length: "+String(postLength,DEC));
+    client.println();
+    client.println(postString);
+    client.println();
+    client.stop();
+  
+}
+}
+
+void inviaStato(){
+  int tt=int(t*100),hh=int(h*100);
+  char ttt[8],hhh[8];
+  
+  sprintf(ttt,"%d.%d", tt/100, tt%100);
+  sprintf(hhh,"%d.%d", hh/100, hh%100);
+  
+  String postString="password=serrarduino1994&t="+String(ttt)+"&h="+String(hhh);
+  postLength=postString.length();
+  
+  Serial.println(postString);
+  
+  if (client.connect(serverName, 80)) {
+    // HTTP request for send current conditions
+    client.println("POST /statistics.php HTTP/1.1");
+    client.println("Host: www.serrarduino.altervista.org");
+    client.println("Content-Type: application/x-www-form-urlencoded");
+    client.println("Content-Length: "+String(postLength,DEC));
+    client.println();
+    client.println(postString);
+    client.println();
+    
+   /* delay(3000);
+    
+    while (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+  }
+  */
+    client.stop();
+    
+   // Serial.println("Dati inviati!");
+}
+//else Serial.println("Dati NON inviati");
 }
