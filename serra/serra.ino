@@ -29,16 +29,16 @@
   String error404="HTTP/1.1 404 Not Found\nServer: SerrArduino/1.0\nContent-Type: text/html\nContent-Language: it\nConnection: close\n\n<html><head><title>Arduino Web Server - Error 404</title></head><body><h1>Error 404: Sorry, that page cannot be found!</h1></body>";
 
   // For sending HTML to the client
-  #define STRING_BUFFER_SIZE 128
-  char buffer[STRING_BUFFER_SIZE];
+  
+  String buffer;
 
   // to store data from HTTP request
-  #define STRING_LOAD_SIZE 128
-  char load[STRING_LOAD_SIZE];
+  
+  String load;
   
   // POST and GET variables
-  #define STRING_VARS_SIZE 128
-  char vars[STRING_VARS_SIZE];
+  
+  String vars;
 
 
 // *** FINE ETHERNET SHIELD
@@ -82,7 +82,7 @@
 //#define OROLOGIO 24 //pin dell'RTC
 #define UMIDIFICATORE 25 //pin dell'umidificatore
 #define POMPA 26//pin della pompa (o del relÃƒÂ¨ associato)
-#define RISCALDAMENTO 27 //pin della resistenza riscaldante (o relÃƒÂ¨ associato)
+#define RISCALDAMENTO 27 //pin della resistenza riscaldante (o relay associato)
 #define LIVELLO 28//pin del sensore di livello serbatoio
 
 float tAmb=20;
@@ -214,7 +214,7 @@ void loop() {
     while (client.connected()) {
       if (client.available()) {
         char c = client.read();
-        headerCli+=String(c);
+        buffer+=c;
         // if you've gotten to the end of the line (received a newline
         // character) and the line is blank, the http request has ended,
         // so you can send a reply
@@ -224,7 +224,7 @@ void loop() {
           // output the page
           
             client.println("<h1>Pannello di controllo</h1>");
-            client.println("<p>Ciao, sono Arduino e questa pagina rappresenta il pannello di controllo della tua serra.</p>");
+            client.println("<p>Ciao, sono SerrArduino e questa pagina rappresenta il pannello di controllo della tua serra.</p>");
           
           break;
         }
@@ -247,6 +247,20 @@ void loop() {
 
 void leggiIrrigazioni(){
   Serial.println("Eseguo leggiIrrigazioni");
+}
+
+void startPompa(){
+  if(digitalRead(LIVELLO)==HIGH){
+      digitalWrite(POMPA,HIGH);
+  }
+  else {
+    comunicaErrore("ACQUA ESAURITA",333);
+  }
+}
+
+void stopPompa(){
+  digitalWrite(POMPA,LOW);
+  
 }
 
 void comunicaErrore(String errore, int codiceErr){
