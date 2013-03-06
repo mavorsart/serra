@@ -1,6 +1,6 @@
 #include "DHT.h"
 #include <stdio.h>
-#include <string.h>
+#include <String.h>
 #include <DS1302.h>
 #include <SPI.h>
 #include <Ethernet.h>
@@ -26,7 +26,7 @@
   char c;
   String headerCli="";
   String header200="HTTP/1.1 200 OK\nServer: SerrArduino/1.0\nContent-Type: text/html\nContent-Language: it\nConnection: close\n";
-  String error404="HTTP/1.1 404 Not Found\nServer: SerrArduino/1.0\nContent-Type: text/html\nContent-Language: it\nConnection: close\n\n<html><head><title>Arduino Web Server - Error 404</title></head><body><h1>Error 404: Sorry, that page cannot be found!</h1></body>";"
+  String error404="HTTP/1.1 404 Not Found\nServer: SerrArduino/1.0\nContent-Type: text/html\nContent-Language: it\nConnection: close\n\n<html><head><title>Arduino Web Server - Error 404</title></head><body><h1>Error 404: Sorry, that page cannot be found!</h1></body>";
 
   // For sending HTML to the client
   #define STRING_BUFFER_SIZE 128
@@ -69,7 +69,7 @@
 // *** FINE DISPOSITIVO RTC
 
 // *** IRRIGAZIONE
-  // dato un vettore ordinato di irrigazioni, l'ora corrente è quella che deve essere effettuata. Tipo "sveglia" in Assembly
+  // dato un vettore ordinato di irrigazioni, l'ora corrente ÃƒÂ¨ quella che deve essere effettuata. Tipo "sveglia" in Assembly
     Time corrente;
 // *** FINE IRRIGAZIONE
 
@@ -81,8 +81,8 @@
 #define VENTOLA_2 23 //pin della ventola 2
 //#define OROLOGIO 24 //pin dell'RTC
 #define UMIDIFICATORE 25 //pin dell'umidificatore
-#define POMPA 26//pin della pompa (o del relè associato)
-#define RISCALDAMENTO 27 //pin della resistenza riscaldante (o relè associato)
+#define POMPA 26//pin della pompa (o del relÃƒÂ¨ associato)
+#define RISCALDAMENTO 27 //pin della resistenza riscaldante (o relÃƒÂ¨ associato)
 #define LIVELLO 28//pin del sensore di livello serbatoio
 
 float tAmb=20;
@@ -159,10 +159,6 @@ void setup() {
 
 void loop() {
   
-  
-  
-  
-  
   //### legge la temperatura dell'ambiente
   
      h = dht.readHumidity();
@@ -193,6 +189,7 @@ void loop() {
    
    //### invia al sito dell'applicazione le variazioni dell'ambiente
         // inviaStato();
+        //comunicaErrore("ERRORE DI PROVA",512);
          delay(2000);
          
    //### legge l'ora attuale dal dispositivo RTC e controlla la schedulazione delle irrigazioni
@@ -249,25 +246,32 @@ void loop() {
 }
 
 void leggiIrrigazioni(){
-  
+  Serial.println("Eseguo leggiIrrigazioni");
 }
 
-void comunicaErrore(String errore){
-  String postString="password=serrarduino1994&valore="+errore;
+void comunicaErrore(String errore, int codiceErr){
+  String postString="password=serrarduino1994&errore="+errore+"&codice="+String(codiceErr,DEC);
   postLength=postString.length();
   
   if (client.connect(serverName, 80)) {
     // HTTP request for send error message
-    client.println("POST /error.php HTTP/1.1");
+    client.println("POST /sendMail.php HTTP/1.1");
     client.println("Host: www.serrarduino.altervista.org");
     client.println("Content-Type: application/x-www-form-urlencoded");
     client.println("Content-Length: "+String(postLength,DEC));
     client.println();
     client.println(postString);
     client.println();
+    
+   /* delay(3000);
+    
+    while (client.available()) {
+    char c = client.read();
+    Serial.print(c);
+    }*/
     client.stop();
   
-}
+  }
 }
 
 void inviaStato(){
@@ -297,11 +301,12 @@ void inviaStato(){
     while (client.available()) {
     char c = client.read();
     Serial.print(c);
-  }
-  */
+    } */
     client.stop();
     
    // Serial.println("Dati inviati!");
+  }
+  //else Serial.println("Dati NON inviati");
 }
-//else Serial.println("Dati NON inviati");
-}
+
+

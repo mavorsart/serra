@@ -1,7 +1,7 @@
 <?php
 //verifico che provenga da arduino: password
 	if($_POST["password"]=="serrarduino1994"){
-		//leggo ip 
+		//leggo temperature
 			$temp=$_POST['t'];
 			$hum=$_POST['h'];
 		//salvo ip nel database

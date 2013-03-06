@@ -20,3 +20,5 @@ class Irrigazione{
        dow=d;
     }
 
+
+
